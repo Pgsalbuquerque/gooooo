@@ -38,7 +38,7 @@ func (s *UserRepository) Update(p models.User) (dto.UserResponseDTO, error) {
 	ctx, close := context.WithTimeout(context.Background(), 10*time.Second)
 	defer close()
 
-	_, err := db.Database("user").Collection("users").UpdateByID(ctx, p.ID, &p)
+	_, err := db.Database("user").Collection("users").UpdateOne(ctx, bson.M{"_id": p.ID}, bson.D{{"$set", bson.D{{"password", p.Password}}}})
 
 	if err != nil {
 		return dto.UserResponseDTO{}, err
@@ -70,5 +70,25 @@ func (s *UserRepository) GetById(id string) (models.User, error) {
 	}
 
 	return result, nil
+
+}
+
+func (s *UserRepository) Delete(id string) error {
+	db := database.GetDB()
+
+	ctx, close := context.WithTimeout(context.Background(), 10*time.Second)
+	defer close()
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Database("user").Collection("users").DeleteOne(ctx, bson.M{"_id": objectId})
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }

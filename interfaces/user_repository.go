@@ -9,4 +9,5 @@ type IUserRepository interface {
 	Store(p models.User) (dto.UserResponseDTO, error)
 	Update(p models.User) (dto.UserResponseDTO, error)
 	GetById(id string) (models.User, error)
+	Delete(id string) error
 }

@@ -59,3 +59,25 @@ func (s *UserService) UpdateUserPassword(data dto.UserUpdatePasswordDTO) (dto.Us
 
 	return result, nil
 }
+
+func (s *UserService) DeleteUser(data dto.UserDeleteDTO) error {
+	user, err := s.repository.GetById(data.ID)
+	if err != nil {
+		return err
+	}
+
+	if data.Password != data.ConfirmPassword {
+		return errors.New("Password does not match")
+	}
+
+	if user.Password != data.Password {
+		return errors.New("Password incorrect")
+	}
+
+	err = s.repository.Delete(data.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

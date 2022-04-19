@@ -61,3 +61,31 @@ func UpdateUserPassword(c *gin.Context) {
 
 	c.JSON(200, result)
 }
+
+func DeleteUser(c *gin.Context) {
+	var dto dto.UserDeleteDTO
+
+	err := c.ShouldBindJSON(&dto)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	repo := &repository.UserRepository{}
+	service := user.NewUserService(repo)
+
+	err = service.DeleteUser(dto)
+	if err != nil {
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+	}
+
+	c.JSON(204, gin.H{})
+
+}

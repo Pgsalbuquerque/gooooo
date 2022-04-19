@@ -14,7 +14,7 @@ func ConfigRoutes(router *gin.Engine) *gin.Engine {
 			user.GET("/")
 			user.POST("/", controller.CreateUser)
 			user.PUT("/")
-			user.DELETE("/")
+			user.DELETE("/", controller.DeleteUser)
 			user.PATCH("/password", controller.UpdateUserPassword)
 
 		}
