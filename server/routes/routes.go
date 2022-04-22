@@ -2,6 +2,7 @@ package routes
 
 import (
 	"strateegy/user-service/controller"
+	"strateegy/user-service/server/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,12 +12,17 @@ func ConfigRoutes(router *gin.Engine) *gin.Engine {
 	{
 		user := main.Group("user")
 		{
-			user.GET("/")
+			user.GET("/", middlewares.Auth(), controller.GetUser)
 			user.POST("/", controller.CreateUser)
 			user.PUT("/")
-			user.DELETE("/", controller.DeleteUser)
-			user.PATCH("/password", controller.UpdateUserPassword)
+			user.DELETE("/", middlewares.Auth(), controller.DeleteUser)
+			user.PATCH("/password", middlewares.Auth(), controller.UpdateUserPassword)
 
+		}
+
+		session := main.Group("session")
+		{
+			session.POST("/login", controller.Login)
 		}
 	}
 

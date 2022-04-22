@@ -8,10 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Hello struct {
-	Message string
-}
-
 func CreateUser(c *gin.Context) {
 	var dto dto.UserRequestDTO
 
@@ -48,10 +44,12 @@ func UpdateUserPassword(c *gin.Context) {
 		return
 	}
 
+	token := c.GetHeader("Authorization")
+
 	repo := &repository.UserRepository{}
 	service := user.NewUserService(repo)
 
-	result, err := service.UpdateUserPassword(dto)
+	result, err := service.UpdateUserPassword(token, dto)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": err.Error(),
@@ -73,10 +71,12 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
+	token := c.GetHeader("Authorization")
+
 	repo := &repository.UserRepository{}
 	service := user.NewUserService(repo)
 
-	err = service.DeleteUser(dto)
+	err = service.DeleteUser(token, dto)
 	if err != nil {
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -88,4 +88,21 @@ func DeleteUser(c *gin.Context) {
 
 	c.JSON(204, gin.H{})
 
+}
+
+func GetUser(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+
+	repo := &repository.UserRepository{}
+	service := user.NewUserService(repo)
+
+	user, err := service.GetUser(token)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	c.JSON(200, user)
 }
