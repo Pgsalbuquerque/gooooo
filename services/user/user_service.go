@@ -1,13 +1,14 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"strateegy/user-service/controller/dto"
+	"strateegy/user-service/grpc"
 	"strateegy/user-service/interfaces"
 	"strateegy/user-service/models"
 	"strateegy/user-service/models/plan"
 	"strateegy/user-service/services/encrypt"
-	"strateegy/user-service/services/sessions"
 )
 
 type UserService struct {
@@ -34,8 +35,22 @@ func (s *UserService) CreateUser(data dto.UserRequestDTO) (dto.UserResponseDTO, 
 
 }
 
-func (s *UserService) UpdateUserPassword(Token string, data dto.UserUpdatePasswordDTO) (dto.UserResponseDTO, error) {
-	ID, err := sessions.NewJWTService().GetIDFromToken(Token)
+func (s *UserService) UpdateUserPassword(token string, data dto.UserUpdatePasswordDTO) (dto.UserResponseDTO, error) {
+
+	conn := grpc.GetConn()
+	client := grpc.NewSendIDClient(conn)
+
+	req := &grpc.Token{
+		Token: token,
+	}
+
+	res, err := client.RequestID(context.Background(), req)
+	if err != nil {
+		return dto.UserResponseDTO{}, err
+	}
+
+	ID := res.GetID()
+
 	if err != nil {
 		return dto.UserResponseDTO{}, err
 	}
@@ -45,7 +60,7 @@ func (s *UserService) UpdateUserPassword(Token string, data dto.UserUpdatePasswo
 		return dto.UserResponseDTO{}, err
 	}
 
-	if user.Password != data.LastPassword {
+	if user.Password != encrypt.SHA256Encoder(data.LastPassword) {
 		return dto.UserResponseDTO{}, errors.New("Last password does not match")
 	}
 
@@ -56,7 +71,7 @@ func (s *UserService) UpdateUserPassword(Token string, data dto.UserUpdatePasswo
 	updatedUser := models.User{
 		ID:       user.ID,
 		Username: user.Username,
-		Password: data.Password,
+		Password: encrypt.SHA256Encoder(data.Password),
 		CPF:      user.CPF,
 		Plan:     user.Plan,
 	}
@@ -70,10 +85,19 @@ func (s *UserService) UpdateUserPassword(Token string, data dto.UserUpdatePasswo
 }
 
 func (s *UserService) DeleteUser(token string, data dto.UserDeleteDTO) error {
-	ID, err := sessions.NewJWTService().GetIDFromToken(token)
+	conn := grpc.GetConn()
+	client := grpc.NewSendIDClient(conn)
+
+	req := &grpc.Token{
+		Token: token,
+	}
+
+	res, err := client.RequestID(context.Background(), req)
 	if err != nil {
 		return err
 	}
+
+	ID := res.GetID()
 
 	user, err := s.repository.GetById(ID)
 	if err != nil {
@@ -84,7 +108,7 @@ func (s *UserService) DeleteUser(token string, data dto.UserDeleteDTO) error {
 		return errors.New("Password does not match")
 	}
 
-	if user.Password != data.Password {
+	if user.Password != encrypt.SHA256Encoder(data.Password) {
 		return errors.New("Password incorrect")
 	}
 
@@ -97,10 +121,20 @@ func (s *UserService) DeleteUser(token string, data dto.UserDeleteDTO) error {
 }
 
 func (s *UserService) GetUser(token string) (models.User, error) {
-	ID, err := sessions.NewJWTService().GetIDFromToken(token)
+
+	conn := grpc.GetConn()
+	client := grpc.NewSendIDClient(conn)
+
+	req := &grpc.Token{
+		Token: token,
+	}
+
+	res, err := client.RequestID(context.Background(), req)
 	if err != nil {
 		return models.User{}, err
 	}
+
+	ID := res.GetID()
 
 	user, err := s.repository.GetById(ID)
 	if err != nil {
