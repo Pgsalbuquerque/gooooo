@@ -11,4 +11,5 @@ type IUserRepository interface {
 	GetById(ID string) (models.User, error)
 	Delete(ID string) error
 	GetByCPF(CPF string) (models.User, error)
+	ChangePlan(ID string, Plan string) error
 }

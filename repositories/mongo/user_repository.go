@@ -108,3 +108,18 @@ func (s *UserRepository) GetByCPF(CPF string) (models.User, error) {
 	return result, nil
 
 }
+
+func (s *UserRepository) ChangePlan(ID string, Plan string) error {
+	db := database.GetDB()
+	ctx, close := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer close()
+
+	objectId, _ := primitive.ObjectIDFromHex(ID)
+
+	_, err := db.Database("user").Collection("users").UpdateOne(ctx, bson.M{"_id": objectId}, bson.D{{"$set", bson.D{{"plan", Plan}}}})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

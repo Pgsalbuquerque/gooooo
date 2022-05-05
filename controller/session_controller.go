@@ -19,6 +19,8 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	db := 
+
 	repo := &repository.UserRepository{}
 	service := sessions.NewSessionService(repo)
 
